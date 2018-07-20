@@ -5,6 +5,7 @@ var _board;
 var _displayDelay;
 var _updateDelay;
 var _params;
+var _updating;
 
 function debugPrint() {
     if (_DEBUG) console.log.apply(console, arguments);
@@ -17,8 +18,14 @@ function display() {
     $("#export").attr("href", "?" + _params.toString());
 }
 
+function update() {
+    if (_updating) {
+        _board.update();
+    }
+}
+
 function updateLoop() {
-    _board.update();
+    update();
     setTimeout(updateLoop, _updateDelay);
 }
 
@@ -28,7 +35,7 @@ function displayLoop() {
 }
 
 function updateDisplayLoop() {
-    _board.update();
+    update();
     display();
     setTimeout(updateDisplayLoop, _updateDelay);
 }
@@ -43,6 +50,12 @@ function startLoop() {
         setTimeout(updateLoop, _updateDelay);
         setTimeout(displayLoop, _displayDelay);
     }
+}
+
+function setUpdating(updating) {
+    _updating = updating;
+    _params.set("auto", _updating);
+    $("#prbtn").text(_updating ? "pause" : "resume");
 }
 
 function main() {
@@ -73,6 +86,11 @@ function main() {
         updatefps: updatefps,
     });
     startLoop();
+
+    setUpdating(!_params.has("auto") || ["true", "1"].includes(_params.get("auto")));
+    $("#prbtn").click(function() {
+        setUpdating(!_updating);
+    })
 }
 $(function() {
 main();
