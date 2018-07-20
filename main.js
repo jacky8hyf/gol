@@ -73,9 +73,9 @@ function main() {
     var data = _params.get("data");
     var wrap = ["true","1"].includes(_params.get("wrap"));
     var displayfps = parseFloat(_params.get("displayfps")) || 
-                                parseFloat(_params.get("fps")) || 1;
+                                parseFloat(_params.get("fps")) || 60;
     var updatefps = parseFloat(_params.get("updatefps")) || 
-                               parseFloat(_params.get("fps")) || 1;
+                               parseFloat(_params.get("fps")) || 60;
     _displayDelay = 1000 / displayfps;
     _updateDelay = 1000 / updatefps;
 
