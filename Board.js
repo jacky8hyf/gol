@@ -16,19 +16,36 @@ function make2dArray(width, height, val) {
 function sum(x, y) { return x + y; }
 
 class Board {
-    constructor(width, height, seed, wrap) {
+    constructor(width, height, seed, wrap, initData) {
         if (seed != null) {
             Math.seedrandom(seed);
         }
         this.width = width;
         this.height = height;
         this.wrap = wrap;
-        this.bothData = [
-            make2dArray(width, height, function() {
-                return Math.random() > 0.5;
-            }), 
-            make2dArray(width, height)];
         this.currentDataIndex = 0;
+
+        var data;
+        if (initData == null) {
+            data = make2dArray(width, height, function() {
+                return Math.random() > 0.5;
+            });
+        } else {
+            var buffer = Uint8Array.from(atob(initData), c => c.charCodeAt(0));
+            var byteIndex = 0;
+            var bitIndex = 0;
+
+            data = make2dArray(width, height, function(i, j) {
+                var retVal = buffer[byteIndex] & (1 << bitIndex) ? true : false;
+
+                bitIndex = (bitIndex + 1) % 8;
+                if (bitIndex == 0) byteIndex++;
+
+                return retVal;
+            });
+        }
+
+        this.bothData = [data, make2dArray(width, height)];
     }
 
     get data() {
@@ -48,8 +65,31 @@ class Board {
         }).join(linebreak || "\n");
     }
 
-    display() {
-        $("p").html(this.toString("M", "_", "<br />"));
+    toBase64String() {
+        var numBytes = Math.ceil(this.width * this.height / 8);
+        var buffer = new Uint8Array(numBytes);
+        var bitIndex = 0;
+        var currentByte = 0;
+        var byteIndex = 0;
+        for (var i = 0; i < this.height; i++) {
+            for (var j = 0; j < this.width; j++) {
+                currentByte |= (this.data[i][j] << bitIndex);
+
+                if (bitIndex == 7) {
+                    buffer[byteIndex] = currentByte;
+                    byteIndex++;
+                    currentByte = 0;
+                }
+
+                bitIndex = (bitIndex + 1) % 8;
+            }
+        }
+        // store last byte
+        if (bitIndex != 0) {
+            view.setUint8(byteIndex, currentByte);
+        }
+
+        return btoa(String.fromCharCode.apply(null, buffer));
     }
 
     update() {

@@ -1,54 +1,63 @@
-$(function() {
+
 
 const _DEBUG = true;
 var _board;
 var _displayfps;
 var _updatefps;
+var _params;
 
 function debugPrint() {
     if (_DEBUG) console.log.apply(console, arguments);
 }
 
-function updateLoop() {
-    _board.update();
+function display() {
+    $("#textcvs").html(_board.toString("M", "_", "<br />"));
+    var base64 = _board.toBase64String();
+    _params.set("data", base64)
+    $("#export").attr("href", "?" + _params.toString());
+}
+
+function updateLoop(isFirstFrame) {
+    if(!isFirstFrame) _board.update();
     setTimeout(updateLoop, 1000.0 / _updatefps);
 }
 
 function displayLoop() {
-    _board.display();
+    display();
     setTimeout(displayLoop, 1000.0 / _displayfps);
 }
 
-function updateDisplayLoop() {
-    _board.update();
-    _board.display();
+function updateDisplayLoop(isFirstFrame) {
+    if (!isFirstFrame) _board.update();
+    display();
     setTimeout(updateDisplayLoop, 1000.0 / _updatefps);
 }
 
 function startLoop() {
     if (_displayfps == _updatefps) {
         // Synchronous update + display
-        updateDisplayLoop();
+        updateDisplayLoop(true);
     } else {
         // Async
-        updateLoop();
+        updateLoop(true);
         displayLoop();
     }
 }
 
 function main() {
     // parse params
-    var params = new URLSearchParams(window.location.search);
-    var width = parseInt(params.get("width")) || 300;
-    var height = parseInt(params.get("height")) || 300;
-    var seed = params.get("seed");
-    var wrap = ["true","1"].includes(params.get("wrap"));
-    _displayfps = parseFloat(params.get("displayfps")) || 
-                               parseFloat(params.get("fps")) || 1;
-    _updatefps = parseFloat(params.get("updatefps")) || 
-                              parseFloat(params.get("fps")) || 1;
+    _params = new URLSearchParams(window.location.search);
+    var width = parseInt(_params.get("width")) || 300;
+    var height = parseInt(_params.get("height")) || 300;
+    var seed = _params.get("seed");
+    var data = _params.get("data");
+    var wrap = ["true","1"].includes(_params.get("wrap"));
+    _displayfps = parseFloat(_params.get("displayfps")) || 
+                               parseFloat(_params.get("fps")) || 1;
+    _updatefps = parseFloat(_params.get("updatefps")) || 
+                              parseFloat(_params.get("fps")) || 1;
 
-    _board = new Board(width, height, seed, wrap);
+    _board = new Board(width, height, seed, wrap, data);
 
     debugPrint({
         width: width,
@@ -58,10 +67,9 @@ function main() {
         displayfps: _displayfps,
         updatefps: _updatefps,
     });
-
     startLoop();
 }
-
+$(function() {
 main();
 
 }); // document.ready()

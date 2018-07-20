@@ -1,3 +1,7 @@
-p {
+#textcvs {
     font-family: "Courier New", Courier, monospace;
+}
+
+#export {
+	word-wrap: break-word;
 }
