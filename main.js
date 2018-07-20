@@ -1,3 +1,4 @@
+$(function() {
 
 const _DEBUG = true;
 var _board;
@@ -133,8 +134,6 @@ function main() {
 
     startLoop();
 }
-
-$(function() {
 
 main();
 
