@@ -16,7 +16,7 @@ function make2dArray(width, height, val) {
 function sum(x, y) { return x + y; }
 
 class Board {
-    constructor(width, height, seed, wrap, initData) {
+    constructor(width, height, wrap, seed, density, initData) {
         if (seed != null) {
             Math.seedrandom(seed);
         }
@@ -28,7 +28,7 @@ class Board {
         var data;
         if (initData == null) {
             data = make2dArray(width, height, function() {
-                return Math.random() > 0.5;
+                return Math.random() < density;
             });
         } else {
             var buffer = Uint8Array.from(atob(initData), c => c.charCodeAt(0));

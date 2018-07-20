@@ -50,20 +50,22 @@ function main() {
     var width = parseInt(_params.get("width")) || 300;
     var height = parseInt(_params.get("height")) || 300;
     var seed = _params.get("seed");
+    var density = parseFloat(_params.get("density")) || 0.5;
     var data = _params.get("data");
     var wrap = ["true","1"].includes(_params.get("wrap"));
     _displayfps = parseFloat(_params.get("displayfps")) || 
-                               parseFloat(_params.get("fps")) || 1;
+                             parseFloat(_params.get("fps")) || 1;
     _updatefps = parseFloat(_params.get("updatefps")) || 
-                              parseFloat(_params.get("fps")) || 1;
+                            parseFloat(_params.get("fps")) || 1;
 
-    _board = new Board(width, height, seed, wrap, data);
+    _board = new Board(width, height, wrap, seed, density, data);
 
     debugPrint({
         width: width,
         height: height,
         seed: seed,
         wrap: wrap,
+        density: density,
         displayfps: _displayfps,
         updatefps: _updatefps,
     });
