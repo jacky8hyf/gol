@@ -101,9 +101,14 @@ class Board {
 
                 var neighbors = [-1, 0, 1].map(function(di) {
                     return [-1, 0, 1].map(function(dj) {
-                        return (cur[i + di] && cur[i + di][j + dj]) << 0;
-                    }).reduce(sum);
-                }).reduce(sum) - cur[i][j];
+                        if (!this.wrap) {
+                            return (cur[i + di] && cur[i + di][j + dj]) << 0;
+                        } else {
+                            return cur[(i + di + this.height) % this.height]
+                                      [(j + dj + this.width) % this.width] << 0;
+                        }
+                    }, this).reduce(sum);
+                }, this).reduce(sum) - cur[i][j];
                 alt[i][j] = neighbors == 3 || (cur[i][j] && neighbors == 2);
             }
         }
