@@ -1,8 +1,6 @@
-$(function() {
 
 const _DEBUG = true;
 var _board;
-var _wrap;
 var _displayfps;
 var _updatefps;
 
@@ -16,28 +14,70 @@ function makeArray(length, func) {
     return arr;
 }
 
+function make2dArray(width, height, val) {
+    return makeArray(height, function(i) {
+        return makeArray(width, function (j) {
+            return typeof val === "function" ? val(i, j) : val;
+        });
+    });
+}
+
+function sum(x, y) { return x + y; }
+
 class Board {
-    constructor(width, height, seed) {
+    constructor(width, height, seed, wrap) {
         if (seed != null) {
             Math.seedrandom(seed);
         }
         this.width = width;
         this.height = height;
-        this.data = makeArray(height, function() {
-            return makeArray(width, index => Math.random() > 0.5);
-        });
+        this.wrap = wrap;
+        this.bothData = [
+            make2dArray(width, height, function() {
+                return Math.random() > 0.5;
+            }), 
+            make2dArray(width, height)];
+        this.currentDataIndex = 0;
     }
 
-    toString() {
+    get data() {
+        return this.bothData[this.currentDataIndex];
+    }
+    get alternativeData() {
+        return this.bothData[1 - this.currentDataIndex];
+    }
+
+    toString(trueValue, falseValue, linebreak) {
+        if (trueValue == null) trueValue = 1;
+        if (falseValue == null) falseValue = 0;
         return this.data.map(function(row) {
             return row.map(function(item) {
-                return item ? 1 : 0;
+                return item ? trueValue : falseValue;
             }).join("");
-        }).join("\n");
+        }).join(linebreak || "\n");
     }
 
     display() {
-        debugPrint(this.toString());
+        $("p").html(this.toString("M", "_", "<br />"));
+    }
+
+    update() {
+        var cur = this.data;
+        var alt = this.alternativeData;
+
+        for (var i = 0; i < this.height; i++) {
+            for (var j = 0; j < this.width; j++) {
+
+                var neighbors = [-1, 0, 1].map(function(di) {
+                    return [-1, 0, 1].map(function(dj) {
+                        return (cur[i + di] && cur[i + di][j + dj]) << 0;
+                    }).reduce(sum);
+                }).reduce(sum) - cur[i][j];
+                alt[i][j] = neighbors == 3 || (cur[i][j] && neighbors == 2);
+            }
+        }
+
+        this.currentDataIndex = 1 - this.currentDataIndex;
     }
 }
 
@@ -54,7 +94,7 @@ function displayLoop() {
 function updateDisplayLoop() {
     _board.update();
     _board.display();
-    setTimeout(displayLoop, 1000.0 / _updatefps);
+    setTimeout(updateDisplayLoop, 1000.0 / _updatefps);
 }
 
 function startLoop() {
@@ -74,25 +114,27 @@ function main() {
     var width = parseInt(params.get("width")) || 300;
     var height = parseInt(params.get("height")) || 300;
     var seed = params.get("seed");
-    _wrap = ["true","1"].includes(params.get("wrap"));
+    var wrap = ["true","1"].includes(params.get("wrap"));
     _displayfps = parseFloat(params.get("displayfps")) || 
                                parseFloat(params.get("fps")) || 1;
     _updatefps = parseFloat(params.get("updatefps")) || 
                               parseFloat(params.get("fps")) || 1;
 
-    _board = new Board(width, height, seed);
+    _board = new Board(width, height, seed, wrap);
 
     debugPrint({
         width: width,
         height: height,
         seed: seed,
-        wrap: _wrap,
+        wrap: wrap,
         displayfps: _displayfps,
         updatefps: _updatefps,
     });
 
     startLoop();
 }
+
+$(function() {
 
 main();
 
