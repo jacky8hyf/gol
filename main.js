@@ -11,17 +11,21 @@ function debugPrint() {
     if (_DEBUG) console.log.apply(console, arguments);
 }
 
-function display() {
-    $("#textcvs").html(_board.toString("M", "_", "<br />"));
-    var base64 = _board.toBase64String();
-    _params.set("data", base64)
+function updateLink() {
     $("#export").attr("href", "?" + _params.toString());
 }
 
+function display(force) {
+    if (!_updating && !force) return;
+    $("#textcvs").html(_board.toString("M", "_", "<br />"));
+    var base64 = _board.toBase64String();
+    _params.set("data", base64);
+    updateLink();
+}
+
 function update() {
-    if (_updating) {
-        _board.update();
-    }
+    if (!_updating) return;
+    _board.update();
 }
 
 function updateLoop() {
@@ -41,7 +45,7 @@ function updateDisplayLoop() {
 }
 
 function startLoop() {
-    display();
+    display(true /* force */);
     if (_displayDelay == _updateDelay) {
         // Synchronous update + display
         setTimeout(updateDisplayLoop, _updateDelay)
@@ -55,6 +59,7 @@ function startLoop() {
 function setUpdating(updating) {
     _updating = updating;
     _params.set("auto", _updating);
+    updateLink();
     $("#prbtn").text(_updating ? "pause" : "resume");
 }
 
