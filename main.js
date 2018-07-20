@@ -2,8 +2,8 @@
 
 const _DEBUG = true;
 var _board;
-var _displayfps;
-var _updatefps;
+var _displayDelay;
+var _updateDelay;
 var _params;
 
 function debugPrint() {
@@ -17,30 +17,31 @@ function display() {
     $("#export").attr("href", "?" + _params.toString());
 }
 
-function updateLoop(isFirstFrame) {
-    if(!isFirstFrame) _board.update();
-    setTimeout(updateLoop, 1000.0 / _updatefps);
+function updateLoop() {
+    _board.update();
+    setTimeout(updateLoop, _updateDelay);
 }
 
 function displayLoop() {
     display();
-    setTimeout(displayLoop, 1000.0 / _displayfps);
+    setTimeout(displayLoop, _displayDelay);
 }
 
-function updateDisplayLoop(isFirstFrame) {
-    if (!isFirstFrame) _board.update();
+function updateDisplayLoop() {
+    _board.update();
     display();
-    setTimeout(updateDisplayLoop, 1000.0 / _updatefps);
+    setTimeout(updateDisplayLoop, _updateDelay);
 }
 
 function startLoop() {
-    if (_displayfps == _updatefps) {
+    display();
+    if (_displayDelay == _updateDelay) {
         // Synchronous update + display
-        updateDisplayLoop(true);
+        setTimeout(updateDisplayLoop, _updateDelay)
     } else {
         // Async
-        updateLoop(true);
-        displayLoop();
+        setTimeout(updateLoop, _updateDelay);
+        setTimeout(displayLoop, _displayDelay);
     }
 }
 
@@ -53,10 +54,12 @@ function main() {
     var density = parseFloat(_params.get("density")) || 0.5;
     var data = _params.get("data");
     var wrap = ["true","1"].includes(_params.get("wrap"));
-    _displayfps = parseFloat(_params.get("displayfps")) || 
-                             parseFloat(_params.get("fps")) || 1;
-    _updatefps = parseFloat(_params.get("updatefps")) || 
-                            parseFloat(_params.get("fps")) || 1;
+    var displayfps = parseFloat(_params.get("displayfps")) || 
+                                parseFloat(_params.get("fps")) || 1;
+    var updatefps = parseFloat(_params.get("updatefps")) || 
+                               parseFloat(_params.get("fps")) || 1;
+    _displayDelay = 1000 / displayfps;
+    _updateDelay = 1000 / updatefps;
 
     _board = new Board(width, height, wrap, seed, density, data);
 
@@ -66,8 +69,8 @@ function main() {
         seed: seed,
         wrap: wrap,
         density: density,
-        displayfps: _displayfps,
-        updatefps: _updatefps,
+        displayfps: displayfps,
+        updatefps: updatefps,
     });
     startLoop();
 }
