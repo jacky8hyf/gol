@@ -1,6 +1,6 @@
 # Game of Life
 
-This is an implementation of Game of Life in JavaScript / HTML5.
+This is an implementation of [Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) in JavaScript / HTML5.
 
 ## Running
 
